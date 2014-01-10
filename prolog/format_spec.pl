@@ -27,10 +27,14 @@ format_spec([text(String)|Rest]) -->
 
 format_spec(Format, Spec) :-
     when((ground(Format);ground(Codes)),text_codes(Format, Codes)),
-    phrase(format_spec(Spec), Codes, []).
+    once(phrase(format_spec(Spec), Codes, [])).
 
 
 %% text_codes(Text:text, Codes:codes).
+text_codes(Var, Codes) :-
+    var(Var),
+    !,
+    string_codes(Var, Codes).
 text_codes(Atom, Codes) :-
     atom(Atom),
     !,
@@ -66,15 +70,46 @@ action(Action) -->
     { atom_codes(Action, [C]) }.
 
 
-is_action(0'~).
-is_action(0'a).
-is_action(0'c).
-is_action(0'd).
-is_action(0'D).
-is_action(0'e).
-is_action(0'E).
-% TODO ...
-is_action(0'n).
-% TODO ...
-is_action(0's).
-% TODO ...
+%% is_action(+Action:integer) is semidet.
+%% is_action(-Action:integer) is multi.
+%
+%  True if Action is a valid format/2 action character. Iterates all
+%  acceptable action characters, if Action is unbound.
+is_action(Action) :-
+    action_types(Action, _).
+
+%% action_types(?Action:integer, ?Types:list(type))
+%
+%  True if Action consumes arguments matching Types. An action (like
+%  `~`), which consumes no arguments, has `Types=[]`.  For example,
+%
+%      ?- action_types(0'~, Types).
+%      Types = [].
+%      ?- action_types(0'a, Types).
+%      Types = [atom].
+action_types(0'~, []).
+action_types(0'a, [atom]).
+action_types(0'c, [integer]).  % specifically, a code
+action_types(0'd, [integer]).
+action_types(0'D, [integer]).
+action_types(0'e, [float]).
+action_types(0'E, [float]).
+action_types(0'f, [float]).
+action_types(0'g, [float]).
+action_types(0'G, [float]).
+action_types(0'i, [any]).
+action_types(0'I, [integer]).
+action_types(0'k, [any]).
+action_types(0'n, []).
+action_types(0'N, []).
+action_types(0'p, [any]).
+action_types(0'q, [any]).
+action_types(0'r, [integer]).
+action_types(0'R, [integer]).
+action_types(0's, [text]).
+action_types(0'@, [callable]).
+action_types(0't, []).
+action_types(0'|, []).
+action_types(0'+, []).
+action_types(0'w, [any]).
+action_types(0'W, [any, list]).

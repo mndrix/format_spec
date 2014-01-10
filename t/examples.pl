@@ -10,7 +10,7 @@ format_spec( "Hello, ~w~n"
            ).
 
 format_spec( '~50f'
-           , [ escape(just(50), no_colon, f) ]
+           , [ escape(number(50), no_colon, f) ]
            ).
 
 format_spec( "~:d"
