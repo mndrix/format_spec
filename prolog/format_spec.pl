@@ -51,6 +51,44 @@ types_error_([_|Args],[_|Types],Error) :-
     types_error_(Args, Types, Error).
 
 
+% check/0 augmentation
+:- multifile check:checker/2.
+:- dynamic check:checker/2.
+check:checker(format_spec:checker, "format/2 strings and arguments").
+
+:- dynamic format_fail/3.
+
+checker :-
+    prolog_walk_code([ module_class([user])
+                     , infer_meta_predicates(false)
+                     , autoload(false)  % format/{2,3} are always loaded
+                     , undefined(ignore)
+                     , trace_reference(_)
+                     , on_trace(check_format)
+                     ]),
+    retract(format_fail(Goal,Location,Error)),
+    print_message(warning, format_error(Goal,Location,Error)),
+    fail.  % iterate all errors
+checker.  % succeed even if no errors are found
+
+check_format(Module:Goal, _Caller, Location) :-
+    predicate_property(Module:Goal, imported_from(Source)),
+    memberchk(Source, [system,prolog_debug]),
+    can_check(Goal),
+    format_error(Goal, Error),
+    assert(format_fail(Goal, Location, Error)),
+    fail.
+check_format(_,_,_).  % succeed to avoid printing goals
+
+% true if format_error/2 can check this goal
+can_check(Goal) :-
+    once(clause(format_error(Goal,_),_)).
+
+prolog:message(format_error(Goal,Location,Error)) -->
+    prolog:message_location(Location),
+    ['~n    In goal: ~q~n    ~s'-[Goal,Error]].
+
+
 format_spec([]) -->
     eos.
 format_spec([escape(Numeric,Modifier,Action)|Rest]) -->
