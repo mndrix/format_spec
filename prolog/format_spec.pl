@@ -27,7 +27,7 @@ format_error_(Format,Args,Error) :-
     types_error(Args, Types, Error).
 format_error_(Format,_,Error) :-
     % \+ format_spec(Format, _),
-    format(string(Error), "Invalid format string: ~s", [Format]).
+    format(string(Error), "Invalid format string: ~q", [Format]).
 
 types_error(Args, Types, Error) :-
     length(Types, TypesLen),

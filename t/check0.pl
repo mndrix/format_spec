@@ -3,7 +3,7 @@
 :- use_module(library(tap)).
 
 format_error( format("~ oops", [_])
-            , "Invalid format string: ~ oops"
+            , "Invalid format string: \"~ oops\""
             ).
 
 format_error( format("hi", [superfluous])
