@@ -9,10 +9,6 @@
 :- use_module(library(error)).
 :- use_module(library(when), [when/2]).
 
-% TODO loading this module is optional
-% TODO it's for my own convenience during development
-:- use_module(library(mavis)).
-
 %% format_error(+Goal, -Error:string) is nondet.
 %
 %  True if Goal, a format/2 or format/3 goal, exhibits an Error. The
