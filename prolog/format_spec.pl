@@ -18,6 +18,8 @@ format_error(format(Format,Args), Error) :-
     format_error_(Format, Args,Error).
 format_error(format(_,Format,Args), Error) :-
     format_error_(Format,Args,Error).
+format_error(debug(_,Format,Args), Error) :-
+    format_error_(Format,Args,Error).
 
 format_error_(Format,Args,Error) :-
     format_spec(Format, Spec),
