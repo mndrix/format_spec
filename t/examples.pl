@@ -16,3 +16,15 @@ format_spec( '~50f'
 format_spec( "~:d"
            , [ escape(nothing, colon, d) ]
            ).
+
+
+'arity calculation' :-
+    format_spec("~*f ~s ~W~n", Spec),
+    spec_arity(Spec, Arity),
+    Arity =:= 5.
+
+
+'argument types' :-
+    format_spec("~*f ~s ~W~n", Spec),
+    spec_types(Spec, Types),
+    Types == [number, float, text, any, list].

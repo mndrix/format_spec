@@ -1,5 +1,7 @@
 :- module(format_spec, [ format_spec/2
                        , format_spec//1
+                       , spec_arity/2
+                       , spec_types/2
                        ]).
 
 :- use_module(library(dcg/basics), [eos//0, integer//1, string_without//2]).
@@ -28,6 +30,48 @@ format_spec([text(String)|Rest]) -->
 format_spec(Format, Spec) :-
     when((ground(Format);ground(Codes)),text_codes(Format, Codes)),
     once(phrase(format_spec(Spec), Codes, [])).
+
+%% spec_arity(+FormatSpec, -Arity:positive_integer) is det.
+%
+%  True if FormatSpec requires format/2 to have Arity arguments.
+spec_arity(Spec, Arity) :-
+    spec_types(Spec, Types),
+    length(Types, Arity).
+
+
+%% spec_types(+FormatSpec, -Types:list(type)) is det.
+%
+%  True if FormatSpec requires format/2 to have arguments of Types. Each
+%  value of Types is a type as described by error:has_type/2. This
+%  notion of types is compatible with library(mavis).
+spec_types(Spec, Types) :-
+    phrase(spec_types(Spec), Types).
+
+spec_types([]) -->
+    [].
+spec_types([Item|Items]) -->
+    item_types(Item),
+    spec_types(Items).
+
+item_types(text(_)) -->
+    [].
+item_types(escape(Numeric,_,Action)) -->
+    numeric_types(Numeric),
+    action_types(Action).
+
+numeric_types(number(_)) -->
+    [].
+numeric_types(character(_)) -->
+    [].
+numeric_types(star) -->
+    [number].
+numeric_types(nothing) -->
+    [].
+
+action_types(Action) -->
+    { atom_codes(Action, [Code]) },
+    { action_types(Code, Types) },
+    phrase(Types).
 
 
 %% text_codes(Text:text, Codes:codes).
