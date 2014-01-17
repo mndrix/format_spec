@@ -1,4 +1,5 @@
-:- module(format_spec, [ format_spec/2
+:- module(format_spec, [ format_error/2
+                       , format_spec/2
                        , format_spec//1
                        , spec_arity/2
                        , spec_types/2
@@ -11,6 +12,46 @@
 % TODO loading this module is optional
 % TODO it's for my own convenience during development
 :- use_module(library(mavis)).
+
+%% format_error(+Goal, -Error:string) is nondet.
+%
+%  True if Goal, a format/2 or format/3 goal, exhibits an Error. The
+%  Error string describes what is wrong with Goal. Iterates each
+%  error on backtracking.
+format_error(format(Format,Args), Error) :-
+    format_error_(Format, Args,Error).
+format_error(format(_,Format,Args), Error) :-
+    format_error_(Format,Args,Error).
+
+format_error_(Format,Args,Error) :-
+    format_spec(Format, Spec),
+    !,
+    is_list(Args),
+    spec_types(Spec, Types),
+    types_error(Args, Types, Error).
+format_error_(Format,_,Error) :-
+    % \+ format_spec(Format, _),
+    format(string(Error), "Invalid format string: ~s", [Format]).
+
+types_error(Args, Types, Error) :-
+    length(Types, TypesLen),
+    length(Args, ArgsLen),
+    TypesLen =\= ArgsLen,
+    !,
+    format( string(Error)
+          , "Wrong argument count. Expected ~d, got ~d"
+          , [TypesLen, ArgsLen]
+          ).
+types_error(Args, Types, Error) :-
+    types_error_(Args, Types, Error).
+
+types_error_([Arg|_],[Type|_],Error) :-
+    ground(Arg),
+    \+ is_of_type(Type,Arg),
+    message_to_string(error(type_error(Type,Arg),_Location),Error).
+types_error_([_|Args],[_|Types],Error) :-
+    types_error_(Args, Types, Error).
+
 
 format_spec([]) -->
     eos.
