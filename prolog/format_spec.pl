@@ -11,9 +11,15 @@
 
 %% format_error(+Goal, -Error:string) is nondet.
 %
-%  True if Goal, a format/2 or format/3 goal, exhibits an Error. The
+%  True if Goal exhibits an Error in its format string. The
 %  Error string describes what is wrong with Goal. Iterates each
 %  error on backtracking.
+%
+%  Goal may be one of the following predicates:
+%
+%    * format/2
+%    * format/3
+%    * debug/3
 format_error(format(Format,Args), Error) :-
     format_error_(Format, Args,Error).
 format_error(format(_,Format,Args), Error) :-
@@ -89,6 +95,10 @@ prolog:message(format_error(Goal,Location,Error)) -->
     ['~n    In goal: ~q~n    ~s'-[Goal,Error]].
 
 
+%% format_spec(-Spec)//
+%
+%  DCG for parsing format strings. It doesn't yet generate format
+%  strings from a spec.  See format_spec/2 for details.
 format_spec([]) -->
     eos.
 format_spec([escape(Numeric,Modifier,Action)|Rest]) -->
@@ -104,6 +114,16 @@ format_spec([text(String)|Rest]) -->
     format_spec(Rest).
 
 
+%% format_spec(+Format, -Spec:list) is semidet.
+%
+%  Parse a format string.  Each element of Spec is one of the following:
+%
+%    * `text(Text)` - text sent to the output as is
+%    * `escape(Num,Colon,Action)` - a format escape
+%
+%  `Num` represents the optional numeric portion of an esape. `Colon`
+%  represents the optional colon in an escape. `Action` is an atom
+%  representing the action to be take by this escape.
 format_spec(Format, Spec) :-
     when((ground(Format);ground(Codes)),text_codes(Format, Codes)),
     once(phrase(format_spec(Spec), Codes, [])).
